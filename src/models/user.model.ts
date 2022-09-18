@@ -22,8 +22,8 @@ export class UsersModel {
     return this.userModel.find().exec();
   }
 
-  async findByNumber(number: number): Promise<User | null> {
-    return this.userModel.findOne({where: { number: number }}).exec();
+  async findByNumber(number: string): Promise<User | null> {
+    return this.userModel.findOne({ number: number }).exec();
   }
 
 
