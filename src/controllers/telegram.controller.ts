@@ -22,4 +22,9 @@ export class TelegramController {
   async sendMessage(@Param() param: any, @Body() boby: ISendMessageDto, @Query() query: any) {
     return await this.userService.sendMessage(boby.userName, boby.message);
   }
+
+  @Post('dialog-list')
+  async dialogList(@Param() param: any, @Body() boby: ISetPhoneDto, @Query() query: any) {
+    return await this.userService.getDialogList(boby.phone);
+  }
 }

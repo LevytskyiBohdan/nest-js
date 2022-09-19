@@ -15,6 +15,7 @@ import { log } from "util";
 import { ConfigService } from "@nestjs/config";
 import { UsersModel } from "../models/user.model";
 import { ConfigEnum } from "../enums/config.enum";
+import { User } from "../schemas/user.schema";
 
 const stringSession = new StringSession('');
 
@@ -23,93 +24,70 @@ const stringSession = new StringSession('');
 export class TelegramUpdate {
   constructor(private usersModel: UsersModel, private configService: ConfigService) {}
 
-  private readonly mapper = new Map<number, string>();
   private readonly logger = new Logger(TelegramUpdate.name);
-
-  private readonly getCode = async (number: number) => {
-    return new Promise<string>((resolve, reject) => {
-      const index = setInterval(() => {
-        if (this.mapper.has(number)) {
-          clearInterval(index);
-          return resolve(this.mapper.get(number) as string);
-        }
-      }, 1000);
-    });
-  };
 
   @Start()
   async start(@Ctx() ctx: Context) {
     await ctx.reply('Welcome. Please enter your phone number in format - /number 380... ');
   }
 
-  @Command('/save_message')
-  async command(@Ctx() ctx: Context) {
-    await ctx.reply('123');
-  }
-
-  @Command('/number')
-  async number(ctx: Context) {
+  @Command('/message_me')
+  async messageMe(@Ctx() ctx: Context) {
     try {
-      const number = (ctx.update as any)?.message?.text?.replace(/\/number(| )/, '');
-      const userTelegramID: number = (ctx.update as any)?.message?.from?.id;
-      const phoneNumber = new PhoneNumber(number);
+      const text = (ctx.update as any)?.message?.text?.replace(/\/message_me(| )/, '');
+      const telegramUserID: string = String((ctx.update as any)?.message?.from?.id);
 
-      await ctx.reply('After you get a code please enter in format /code 123...');
-      if (phoneNumber.isValid()) {
-        const TELEGRAM_API_ID = Number(this.configService.get<number>(ConfigEnum.TELEGRAM_API_ID));
-        const TELEGRAM_API_HASH = String(this.configService.get<string>(ConfigEnum.TELEGRAM_API_HASH));
+      const user: User | null = await this.usersModel.telegramUserID(telegramUserID);
 
-        const client = new TelegramClient(
-          stringSession,
-          TELEGRAM_API_ID,
-          TELEGRAM_API_HASH,
-          {
-            connectionRetries: 5,
-          });
-
-        await client.connect();
-
-        client.start({
-          phoneNumber: async () => number,
-          phoneCode: async () => await this.getCode(userTelegramID),
-          onError: (err: Error) => this.logger.error(err)
-        })
-          .then(async res => {
-            console.log(res, 'res>>>');
-            const telegramSession = client.session.save() as unknown;
-            this.logger.log(`Adding number ${phoneNumber.getNumber()} to our db with session: ${telegramSession}`);
-            console.log('`Adding number ${phoneNumber.getNumber()} to our db with session: ${telegramSession}`');
-            await this.usersModel.saveUserSession({name: 'Bohdan', number: phoneNumber.getNumber(), telegramSession: telegramSession as string});
-            // await this.userModel.create({ phoneNumber: phoneNumber.getNumber(), telegramSession });
-          });
-
+      if(!user) {
+        const message = 'User not found';
+        this.logger.error(message);
+        await ctx.reply(message);
+        return message;
       }
+      const TELEGRAM_API_ID = Number(this.configService.get<number>(ConfigEnum.TELEGRAM_API_ID));
+      const TELEGRAM_API_HASH = String(this.configService.get<string>(ConfigEnum.TELEGRAM_API_HASH));
+
+      const client = new TelegramClient(new StringSession(user.telegramSession),TELEGRAM_API_ID,TELEGRAM_API_HASH,{});
+      await client.connect();
+      await client.sendMessage('me', { message: text });
+
     } catch (e) {
       this.logger.error(e);
-      await ctx.reply('Something went wrong...');
+      return e;
     }
+
+    return 'Done'
   }
 
-  @Command('/code')
-  async codeCommand(ctx: Context) {
+  @Command('/dialog_list')
+  async dialogList(@Ctx() ctx: Context) {
     try {
-      const text = (ctx.update as any)?.message?.text?.replace(/\/code(| )/, '');
-      const userTelegramID: number = (ctx.update as any)?.message?.from?.id;
-      const code = text.slice(-5);
-      if (!userTelegramID) {
-        await ctx.reply('Wrong userTelegramID');
-        return;
+      const telegramUserID: string = String((ctx.update as any)?.message?.from?.id);
+
+      const user: User | null = await this.usersModel.telegramUserID(telegramUserID);
+
+      if(!user) {
+        const message = 'User not found';
+        this.logger.error(message);
+        await ctx.reply(message);
+        return message;
       }
-      if (!code) {
-        await ctx.reply('Wrong code');
-        return;
-      }
-      this.mapper.set(userTelegramID, code);
-      await ctx.reply('Done');
+
+      const TELEGRAM_API_ID = Number(this.configService.get<number>(ConfigEnum.TELEGRAM_API_ID));
+      const TELEGRAM_API_HASH = String(this.configService.get<string>(ConfigEnum.TELEGRAM_API_HASH));
+
+      const client = new TelegramClient(new StringSession(user.telegramSession),TELEGRAM_API_ID,TELEGRAM_API_HASH,{});
+      await client.connect();
+      const dialogs = await client.getDialogs({});
+      console.log(dialogs, 'dialogs?>>>>');
+
     } catch (e) {
       this.logger.error(e);
-      await ctx.reply('Something went wrong...');
+      return e;
     }
+
+    return 'Done'
   }
 
   @Help()

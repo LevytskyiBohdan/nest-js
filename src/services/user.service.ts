@@ -6,6 +6,7 @@ import { ConfigEnum } from "../enums/config.enum";
 import { TelegramClient, Api } from "telegram";
 import { ConfigService } from "@nestjs/config";
 import { StringSession } from "telegram/sessions";
+import { TotalList } from "telegram/Helpers";
 
 const stringSession = new StringSession('');
 
@@ -57,15 +58,15 @@ export class UserService {
         })
           .then(async res => {
             this.logger.warn(`Responce - ${res}`);
-            console.log(res);
             const telegramSession = client.session.save() as unknown;
             this.logger.log(`Adding number ${phoneNumber.getNumber()} to our db with session: ${telegramSession}`);
-
             await this.usersModel.saveUserSession({
               name: 'Bohdan',
               number: phoneNumber.getNumber(),
-              telegramSession: telegramSession as string
+              telegramSession: telegramSession as string,
+              telegramUserID: phone
             });
+            // await this.userModel.create({ phoneNumber: phoneNumber.getNumber(), telegramSession });
           });
           return 'You will receive code soon';
       }
@@ -109,7 +110,7 @@ export class UserService {
 
       const client = new TelegramClient(new StringSession(user.telegramSession),TELEGRAM_API_ID,TELEGRAM_API_HASH,{});
       await client.connect();
-      this.logger.warn(userNane, message);
+      await client.sendMessage(userNane, { message });
 
     } catch (e) {
       this.logger.error(e);
@@ -117,6 +118,34 @@ export class UserService {
     }
 
     return 'Done'
+
+  }
+
+  async getDialogList(phone: string): Promise<string | TotalList<unknown>> {
+    try {
+
+      const user: User | null = await this.usersModel.findByNumber(phone);
+
+      if(!user) {
+        const message = 'User not found';
+        this.logger.error(message);
+        return message;
+      }
+
+      const TELEGRAM_API_ID = Number(this.configService.get<number>(ConfigEnum.TELEGRAM_API_ID));
+      const TELEGRAM_API_HASH = String(this.configService.get<string>(ConfigEnum.TELEGRAM_API_HASH));
+
+      const client = new TelegramClient(new StringSession(user.telegramSession),TELEGRAM_API_ID,TELEGRAM_API_HASH,{});
+      await client.connect();
+
+      const dialogs: TotalList<unknown> = await client.getDialogs({});
+      console.log(dialogs);
+      return JSON.stringify(dialogs);
+
+    } catch (e) {
+      this.logger.error(e);
+      return e;
+    }
 
   }
 

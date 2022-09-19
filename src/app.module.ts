@@ -10,6 +10,7 @@ import { DBController } from "./controllers/db.controller";
 import { UserService } from "./services/user.service";
 import { TelegramUpdate } from "./services/telegram.service";
 import { TelegramController } from "./controllers/telegram.controller";
+import { TelegramSaveSessionService } from "./services/telegram-save-session.service";
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { TelegramController } from "./controllers/telegram.controller";
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
   ],
   controllers: [DBController, TelegramController],
-  providers: [AppService, UsersModel, UserService, TelegramUpdate],
+  providers: [AppService, UsersModel, UserService, TelegramUpdate, TelegramSaveSessionService],
 })
 export class AppModule {}

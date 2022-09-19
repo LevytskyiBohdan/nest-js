@@ -23,7 +23,11 @@ export class UsersModel {
   }
 
   async findByNumber(number: string): Promise<User | null> {
-    return this.userModel.findOne({ number: number }).exec();
+    return this.userModel.findOne({ number }).exec();
+  }
+
+  async telegramUserID(telegramUserID: string): Promise<User | null> {
+    return this.userModel.findOne({ telegramUserID }).exec();
   }
 
 
