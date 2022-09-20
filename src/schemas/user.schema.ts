@@ -6,16 +6,13 @@ export type UserDocument = User & Document;
 @Schema()
 export class User {
   @Prop()
-  name: string;
-
-  @Prop()
   number: string;
 
   @Prop()
   telegramSession: string;
 
   @Prop()
-  telegramUserID: string;
+  telegramUserID: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

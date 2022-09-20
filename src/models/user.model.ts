@@ -5,17 +5,12 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { ISaveUserSessionDto } from "../interfaces/user.interface";
 
 @Injectable()
-export class UsersModel {
+export class UserModel {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(createUserDto: ISaveUserSessionDto): Promise<User> {
-    const createdCat = new this.userModel(createUserDto);
-    return createdCat.save();
-  }
-
   async saveUserSession(createUserDto: ISaveUserSessionDto): Promise<User> {
-    const createdCat = new this.userModel(createUserDto);
-    return createdCat.save();
+    const model = new this.userModel(createUserDto);
+    return model.save();
   }
 
   async findAll(): Promise<User[]> {
@@ -26,9 +21,8 @@ export class UsersModel {
     return this.userModel.findOne({ number }).exec();
   }
 
-  async telegramUserID(telegramUserID: string): Promise<User | null> {
+  async findByTelegramUserID(telegramUserID: number): Promise<User | null> {
     return this.userModel.findOne({ telegramUserID }).exec();
   }
-
 
 }
