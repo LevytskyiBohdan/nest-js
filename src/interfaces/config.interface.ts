@@ -1,4 +1,4 @@
-import { ConfigEnum } from "../enums/config.enum";
+import { ConfigEnum } from '../enums/config.enum';
 
 export interface IConfig {
   [ConfigEnum.TELEGRAM_TOKEN]: string;

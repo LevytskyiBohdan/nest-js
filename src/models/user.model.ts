@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
-import { ISaveUserSessionDto } from "../interfaces/user.interface";
+import { ISaveUserSessionDto } from '../interfaces/user.interface';
 
 @Injectable()
 export class UserModel {
@@ -24,5 +24,4 @@ export class UserModel {
   async findByTelegramUserID(telegramUserID: number): Promise<User | null> {
     return this.userModel.findOne({ telegramUserID }).exec();
   }
-
 }

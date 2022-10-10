@@ -8,10 +8,10 @@ export class Message {
   @Prop()
   out: boolean;
 
-  @Prop()
+  @Prop({ default: '' })
   fromUserId: string;
 
-  @Prop()
+  @Prop({ default: '' })
   peerUserId: string;
 
   @Prop()
@@ -25,3 +25,5 @@ export class Message {
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
+
+MessageSchema.index({ lastModifiedDate: 1 }, { expireAfterSeconds: 604_800 });
