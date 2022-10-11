@@ -11,6 +11,12 @@ import { TelegramSaveSessionService } from './services/telegram-save-session.ser
 import { TelegramSaveMessagesService } from './services/telegram-save-messages.service';
 import { MessageModel } from './models/message.model';
 import { Message, MessageSchema } from './schemas/message.schema';
+import { TelegramExcludeMessagesService } from './services/telegram-exclude-messages.service';
+import {
+  ExcludeMessage,
+  ExcludeMessageSchema,
+} from './schemas/exclude-message.schema';
+import { ExcludeMessageModel } from './models/exclude-message.model';
 
 @Module({
   imports: [
@@ -26,6 +32,7 @@ import { Message, MessageSchema } from './schemas/message.schema';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Message.name, schema: MessageSchema },
+      { name: ExcludeMessage.name, schema: ExcludeMessageSchema },
     ]),
   ],
   controllers: [],
@@ -35,7 +42,9 @@ import { Message, MessageSchema } from './schemas/message.schema';
     TelegramUpdate,
     TelegramSaveSessionService,
     TelegramSaveMessagesService,
+    TelegramExcludeMessagesService,
     MessageModel,
+    ExcludeMessageModel,
   ],
 })
 export class AppModule {}

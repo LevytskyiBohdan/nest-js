@@ -11,6 +11,7 @@ import { User } from '../schemas/user.schema';
 import { ISaveMessageDto } from '../interfaces/message.interface';
 import PeerUser = Api.PeerUser;
 import { MessageModel } from '../models/message.model';
+import { ExcludeMessageModel } from '../models/exclude-message.model';
 
 @Update()
 export class TelegramSaveMessagesService implements OnApplicationBootstrap {
@@ -18,6 +19,7 @@ export class TelegramSaveMessagesService implements OnApplicationBootstrap {
     private usersModel: UserModel,
     private configService: ConfigService,
     private messageModel: MessageModel,
+    private excludeMessageModel: ExcludeMessageModel,
   ) {}
 
   private readonly mapper = new Map<
@@ -25,17 +27,6 @@ export class TelegramSaveMessagesService implements OnApplicationBootstrap {
     { client: TelegramClient; event: NewMessage }
   >();
   private readonly logger = new Logger(TelegramSaveMessagesService.name);
-
-  // private readonly getListener = async (number: number) => {
-  //   return new Promise<string>((resolve, reject) => {
-  //     const index = setInterval(() => {
-  //       if (this.mapper.has(number)) {
-  //         clearInterval(index);
-  //         return resolve(this.mapper.get(number) as string);
-  //       }
-  //     }, 1000);
-  //   });
-  // };
 
   async onApplicationBootstrap() {
     for (const user of await this.usersModel.findAll()) {
@@ -113,15 +104,15 @@ export class TelegramSaveMessagesService implements OnApplicationBootstrap {
         fromUserId: event.message.fromId
           ? (event.message.fromId as PeerUser).userId.valueOf()
           : null,
-        peerUserId: event.message.peerId
-          ? (event.message.peerId as PeerUser).userId.valueOf()
-          : null,
+        peerUserId: (event.message.peerId as PeerUser).userId.valueOf(),
         message: event.message.message,
         telegramUserID,
         date: new Date(),
       };
 
-      await this.messageModel.saveMessage(body);
+      if (await this.isSaveMessage(telegramUserID, body.peerUserId)) {
+        await this.messageModel.saveMessage(body);
+      }
     };
 
     const event = new NewMessage({});
@@ -131,5 +122,15 @@ export class TelegramSaveMessagesService implements OnApplicationBootstrap {
     client.addEventHandler(handler, event);
 
     return `Listener was started for - ${user.number}`;
+  }
+
+  async isSaveMessage(
+    telegramUserID: number,
+    telegramExcludeUserID: number,
+  ): Promise<boolean> {
+    return await !this.excludeMessageModel.findToExcludeUser(
+      telegramUserID,
+      telegramExcludeUserID,
+    );
   }
 }
