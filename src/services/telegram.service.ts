@@ -68,7 +68,26 @@ export class TelegramUpdate {
 
   @Help()
   async help(@Ctx() ctx: Context) {
-    await ctx.reply('Send me a sticker');
+    const message = `
+    Commands:
+    
+    /start - use this command for starting initiate bot
+    
+    /number - use this command for enter your phone number and start to work. 
+    Example: /number +380...
+    
+    /code - use this command to provide verification code in format 1-2-3-4-5 from Telegram. 
+    Example: /code 1-2-3-4-5
+    
+    /start_save - use this command for starting to save your messages
+    
+    /stop_save - use this command for stopping to save your messages
+    
+    /exclude - use this command to exclude chat to saving. 
+    Example: /exclude massage-saver-bot
+    `;
+
+    await ctx.reply(message);
   }
 
   @On('sticker')
