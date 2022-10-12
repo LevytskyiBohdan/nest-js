@@ -8,21 +8,14 @@ ENV DB mongodb+srv://root:g80YRYt2L4f0YJ8s@cluster0.w9hajdm.mongodb.net/nestjs?r
 ENV TELEGRAM_API_ID 10237942
 ENV TELEGRAM_API_HASH f9e4d589038d96fc0e01a09996d07c3c
 
-RUN mkdir ./raw
 
-COPY package*.json ./raw
+COPY package*.json ./
 
-RUN cd ./raw \
-    && npm install --force
+RUN npm install --force
 
-COPY . ./raw
+COPY . .
 
-RUN cd ./raw \
-    && npm run build / \
-    && cd .. \
-    && mv ./raw/dist .
-
-RUN rm -r raw
+RUN npm run build
 
 ENTRYPOINT ["node"]
 
