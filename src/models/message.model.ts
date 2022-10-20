@@ -6,9 +6,7 @@ import { ISaveMessageDto } from '../interfaces/message.interface';
 
 @Injectable()
 export class MessageModel {
-  constructor(
-    @InjectModel(Message.name) private messageModel: Model<MessageDocument>,
-  ) {}
+  constructor(@InjectModel(Message.name) private messageModel: Model<MessageDocument>) {}
 
   async saveMessage(saveMessageDto: ISaveMessageDto): Promise<Message> {
     const model = new this.messageModel(saveMessageDto);

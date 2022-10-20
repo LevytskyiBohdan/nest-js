@@ -13,6 +13,9 @@ export class User {
 
   @Prop()
   telegramUserID: number;
+
+  @Prop()
+  isUse: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

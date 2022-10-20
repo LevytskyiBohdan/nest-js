@@ -12,5 +12,4 @@ export class ExcludeMessage {
   telegramExcludeUserID: number;
 }
 
-export const ExcludeMessageSchema =
-  SchemaFactory.createForClass(ExcludeMessage);
+export const ExcludeMessageSchema = SchemaFactory.createForClass(ExcludeMessage);
